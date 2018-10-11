@@ -57,25 +57,25 @@ def print_loss(e_tr_losses,e_val_losses,model_name):
 	plt.savefig(fig_name)
 	plt.close()
 
-train_x,train_y=load_data('../mosi_data/COVAREP/train_matrix.pkl')
-train_data_loader=get_data_loader(train_x,train_y)
-
-print("loaded train data loader")
-test_x,test_y=load_data('../mosi_data/COVAREP/test_matrix.pkl')
-
-print("loaded test")
-valid_x,valid_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
-print("loaded valid")
-
-# train_x,train_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
-# train_data_loader=get_data_loader(train_x,train_y)
+# # train_x,train_y=load_data('../mosi_data/COVAREP/train_matrix.pkl')
+# # train_data_loader=get_data_loader(train_x,train_y)
 
 # print("loaded train data loader")
-# test_x,test_y=train_x,train_y
-
-# valid_x,valid_y=train_x,train_y
+# test_x,test_y=load_data('../mosi_data/COVAREP/test_matrix.pkl')
+# print("loaded test")
+# valid_x,valid_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
 # print("loaded valid")
 
+train_x,train_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
+
+print("loaded train data loader")
+test_x,test_y=train_x[0:30],train_y[0:30]
+
+valid_x,valid_y=train_x[30:50],train_y[30:50]
+print("loaded valid")
+
+train_x,train_y=train_x[50:],train_y[50:]
+train_data_loader=get_data_loader(train_x,train_y)
 
 def get_mini_batch_list(batch_size):
 	index_arr=np.arange(len(train_x))

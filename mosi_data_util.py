@@ -114,4 +114,20 @@ def get_unpad_data(x):
 # 	break
 
 
+# len train 1283
+# loaded test
+# len test 686
+# loaded valid
+# len valid 229
 
+# train_x,train_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
+# train_data_loader=get_data_loader(train_x,train_y)
+
+# print("loaded train data loader")
+# test_x,test_y=train_x[0:30],train_y[0:30]
+# print len(test_x)
+# valid_x,valid_y=train_x[30:50],train_y[30:50]
+# print("loaded valid")
+# print len(valid_x)
+# train_x,train_y=train_x[50:],train_y[50:]
+# print len(train_x)

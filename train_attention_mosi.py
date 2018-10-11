@@ -206,11 +206,15 @@ if __name__=='__main__':
 	# context_dim=128
 	# learning_rate=0.0001
 
-	lan_hid_dim_list=[250,200,172]
-	face_hid_dim_list=[32,24,16]
-	context_dim_list=[128,170,256]
-	learnig_rate_list=[0.00066,0.0066,0.0033,0.0001,0.001,0.01]
-
+	# lan_hid_dim_list=[250,200,172]
+	# face_hid_dim_list=[32,24,16]
+	# context_dim_list=[128,170,256]
+	# learnig_rate_list=[0.00066,0.0066,0.0033,0.0001,0.001,0.01]
+	lan_hid_dim_list=[250]
+	face_hid_dim_list=[32]
+	context_dim_list=[128]
+	learnig_rate_list=[0.00066]
+	
 	for lan_hid_dim in lan_hid_dim_list:
 		for face_hid_dim in face_hid_dim_list:
 			for context_dim in context_dim_list:

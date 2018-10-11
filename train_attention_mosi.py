@@ -17,7 +17,7 @@ from mosi_model_evaluator import MosiEvaluator
 import datetime
 import csv 
 
-model_version="experiment/hidden_dim/"
+model_version="~/ets/deep_learning/experiment/attention_model/data_loader/"
 # time_stamp=str(datetime.datetime.now())
 
 mini_batch_size=10	

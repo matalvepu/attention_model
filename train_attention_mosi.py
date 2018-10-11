@@ -13,6 +13,7 @@ from attention_model import LSTM_custom,MOSI_attention_classifier
 import gzip, cPickle
 import matplotlib.pyplot as plt
 from mosi_helper import *
+from mosi_data_util import *
 from mosi_model_evaluator import MosiEvaluator
 import datetime
 import csv 
@@ -22,11 +23,11 @@ model_version="experiment/hidden_dim/"
 
 mini_batch_size=10	
 
-def load_data(file_name):
-	fp=gzip.open(file_name,'rb') 
-	data =cPickle.load(fp)
-	fp.close()
-	return data["x"],data["y"]
+# def load_data(file_name):
+# 	fp=gzip.open(file_name,'rb') 
+# 	data =cPickle.load(fp)
+# 	fp.close()
+# 	return data["x"],data["y"]
 
 def save_result(model_name,eval_results,params):
 	print params
@@ -214,7 +215,7 @@ if __name__=='__main__':
 	face_hid_dim_list=[32]
 	context_dim_list=[128]
 	learnig_rate_list=[0.00066]
-	
+
 	for lan_hid_dim in lan_hid_dim_list:
 		for face_hid_dim in face_hid_dim_list:
 			for context_dim in context_dim_list:

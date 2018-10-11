@@ -18,7 +18,7 @@ from mosi_model_evaluator import MosiEvaluator
 import datetime
 import csv 
 
-model_version="~/ets/deep_learning/experiment/attention_model/custom_minibatch/"
+model_version="../experiment/attention_model/custom_minibatch/"
 # time_stamp=str(datetime.datetime.now())
 
 mini_batch_size=10	

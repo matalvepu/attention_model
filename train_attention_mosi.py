@@ -262,7 +262,7 @@ if __name__=='__main__':
 
 	# 		train_mosi_sentiments(mosi_model,learnig_rate,hidden_dim)
 	time_str="data loader---program run time "+str((time.time() - start_time))+"seconds ---"
-	f_name=model_version+"/out.txt"
+	f_name=model_version+"out.txt"
 	f=open(f_name,"a")
 	f.write(time_str)
 			

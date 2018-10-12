@@ -71,7 +71,7 @@ class LSTM_custom(nn.Module):
         self.W_ho = nn.Linear(hidden_dim,hidden_dim)
         self.W_zo = nn.Linear(context_dim,hidden_dim)
         self.W_zi = nn.Linear(context_dim,hidden_dim)
-        self.drop = nn.Dropout(0.1)
+        self.drop = nn.Dropout(0.2)
 
 
     def dropout(self):
@@ -103,6 +103,28 @@ class LSTM_custom(nn.Module):
         return h_,c_
 
 
+class Memory_attention_network(nn.Module):
+
+    def __init__(self,hidden_comb_dim,context_dim,num_atten):
+
+        super(Memory_attention_network,self).__init__()
+        self.hidden_comb_dim=hidden_comb_dim
+        self.num_atten=num_atten
+        self.attention_weigths=[nn.Linear(context_dim,hidden_comb_dim) for i in range(num_atten)]
+        self.W_ac = nn.Linear(hidden_comb_dim,context_dim)
+        self.s=nn.Softmax()
+
+    def forward(self,h_i,z):
+
+        h=variablize(torch.zeros(self.hidden_comb_dim).view(1,-1))
+        for i in range(self.num_atten):
+            w_t=self.s(self.attention_weigths[i](z))
+            h_t=torch.mul(h_i,w_t)
+            h+=h_t
+
+        z=self.W_ac(h)
+
+        return z 
 
 
 class MOSI_attention_classifier(nn.Module,ModelIO):
@@ -113,45 +135,54 @@ class MOSI_attention_classifier(nn.Module,ModelIO):
     def init_context_var(self,context_dim):
         return variablize(torch.zeros(1, context_dim))
 
-    def __init__(self,lan_param,face_param,out_dim):
+    def __init__(self,lan_param,audio_param,face_param,num_atten,context_dim,out_dim):
+
         super(MOSI_attention_classifier,self).__init__()
-        self.lan_lstm=LSTM_custom(lan_param['input_dim'],lan_param['hidden_dim'],lan_param['context_dim'])
-        self.face_lstm=LSTM_custom(face_param['input_dim'],face_param['hidden_dim'],face_param['context_dim'])
-        self.context_dim = lan_param['context_dim']
-        self.hidden_comb_dim=lan_param['hidden_dim']+face_param['hidden_dim']
-        self.W_a = nn.Linear(self.context_dim,self.hidden_comb_dim)
-        self.lan_init_param = self.init_lstm_param(lan_param['hidden_dim'])
-        self.face_init_param = self.init_lstm_param(face_param['hidden_dim'])      
-        self.W_ac = nn.Linear(self.hidden_comb_dim,self.context_dim)
+
+        self.lan_lstm=LSTM_custom(lan_param['input_dim'],lan_param['hidden_dim'],context_dim)
+        self.audio_lstm=LSTM_custom(audio_param['input_dim'],audio_param['hidden_dim'],context_dim)
+        self.face_lstm=LSTM_custom(face_param['input_dim'],face_param['hidden_dim'],context_dim)
+        
+        self.num_atten=num_atten
+        self.context_dim=context_dim
+        self.hidden_comb_dim=lan_param['hidden_dim']+audio_param['hidden_dim']+face_param['hidden_dim']
+
+        self.mab_net = Memory_attention_network(self.hidden_comb_dim,self.context_dim,self.num_atten)
         self.W_cout = nn.Linear(self.context_dim,out_dim)
-        self.z_init = self.init_context_var(self.context_dim)
-        # print "z_init",self.z_init
+
+        self.lan_init_param = self.init_lstm_param(lan_param['hidden_dim'])
+        self.audio_init_param = self.init_lstm_param(audio_param['hidden_dim']) 
+        self.face_init_param = self.init_lstm_param(face_param['hidden_dim'])        
+
 
     def forward(self,opinion):
+
         s=nn.Softmax()
         for i,x in enumerate(opinion):
-            x_lan,x_face=filter_train_features(x)
+            x_lan,x_audio,x_face=filter_train_features(x)
             x_lan=variablize(torch.FloatTensor(x_lan))
+            x_audio=variablize(torch.FloatTensor(x_audio))
             x_face=variablize(torch.FloatTensor(x_face))
 
             #lhtmstep 
             if i==0:
                 if self.training:
                     self.lan_lstm.dropout()
+                    self.audio_lstm.dropout()
                     self.face_lstm.dropout()
-                h_lan,c_lan=self.lan_lstm.forward(x_lan,self.lan_init_param,self.z_init)
-                h_face,c_face=self.face_lstm.forward(x_face,self.face_init_param,self.z_init)
-                h_i=torch.cat((h_lan,h_face),1)
-                attn_weigths=s(self.W_a(self.z_init))
-                h_atten = torch.mul(h_i,attn_weigths)
-                z=self.W_ac(h_atten)
+
+                z_init = self.init_context_var(self.context_dim)
+                h_lan,c_lan=self.lan_lstm.forward(x_lan,self.lan_init_param,z_init)
+                h_audio,c_audio=self.audio_lstm.forward(x_audio,self.audio_init_param,z_init)
+                h_face,c_face=self.face_lstm.forward(x_face,self.face_init_param,z_init)
+                h_i=torch.cat((h_lan,h_audio,h_face),1)           
+                z=self.mab_net.forward(h_i,z_init)
             else:
                 h_lan,c_lan=self.lan_lstm.forward(x_lan,(h_lan,c_lan),z)
+                h_audio,c_audio=self.audio_lstm.forward(x_audio,(h_audio,c_audio),z)
                 h_face,c_face=self.face_lstm.forward(x_face,(h_face,c_face),z)
-                h_i=torch.cat((h_lan,h_face),1)
-                attn_weigths=s(self.W_a(z))
-                h_atten = torch.mul(h_i,attn_weigths)
-                z=self.W_ac(h_atten)
+                h_i=torch.cat((h_lan,h_audio,h_face),1)
+                z=self.mab_net.forward(h_i,z)
 
             # print "####DEBUG#####", i
             # print "h_lan",h_lan
@@ -167,40 +198,19 @@ class MOSI_attention_classifier(nn.Module,ModelIO):
 
 
 def test_model():
-    opinion=np.array([[1,2,3,4,5],[3,4,5,6,7]])
+    opinion=np.array([[1,2,3,4,5,6,7,8],[3,4,5,6,7,8,9,10]])
     lan_param={'input_dim':3,'hidden_dim':2,'context_dim':2}
+    audio_param={'input_dim':3,'hidden_dim':2,'context_dim':2}
     face_param={'input_dim':2,'hidden_dim':2,'context_dim':2}
+    context_dim=2
+    num_atten=2
     out_dim=1
 
-    mosi_model=MOSI_attention_classifier(lan_param,face_param,out_dim)
+    mosi_model=MOSI_attention_classifier(lan_param,audio_param,face_param,num_atten,context_dim,out_dim)
     # print mosi_model
-    mosi_model.forward(opinion)
+    print mosi_model.forward(opinion)
 
 
 
 # test_model()
 
-# class LIWC_lie_detector(nn.Module,ModelIO):
-
-#     def init_hidden(self,hidden_dim):
-#         return (variablize(torch.zeros(1, hidden_dim)),variablize(torch.zeros(1, hidden_dim)))
-
-#     def __init__(self,input_dim,lstm_hidden_dim,out_dim):
-#         super(LIWC_lie_detector,self).__init__()
-#         self.lstm=LSTM_custom(input_dim,lstm_hidden_dim)
-#         self.W_fhout = nn.Linear(lstm_hidden_dim,out_dim)
-#         self.h = self.init_hidden(lstm_hidden_dim)
-
-#     def forward(self,opinion):
-#         for i,x in enumerate(opinion):
-#             x=variablize(torch.FloatTensor(filter_train_features(x)))
-#             if i==0:
-#                 if self.training:
-#                     self.lstm.dropout()
-#                 h_x,c_x=self.lstm.forward(x,self.h)
-#             else:
-#                 h_x,c_x=self.lstm.forward(x,(h_x,c_x))
-
-#         out=self.W_fhout(h_x)
-#         # return torch.sigmoid(out)
-#         return out

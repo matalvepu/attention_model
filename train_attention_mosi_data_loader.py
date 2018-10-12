@@ -10,13 +10,15 @@ plt.switch_backend('agg')
 import time
 import numpy as np
 from attention_model import LSTM_custom,MOSI_attention_classifier
-import gzip, cPickle
+import gzip
+import cPickle as pkl
 import matplotlib.pyplot as plt
 from mosi_helper import *
 from mosi_data_util import *
 from mosi_model_evaluator import MosiEvaluator
 import datetime
 import csv 
+import sys
 
 model_version="../experiment/attention_model/dummy/data_loader/"
 # time_stamp=str(datetime.datetime.now())
@@ -173,10 +175,10 @@ def train_mosi_sentiments(mosi_model,params):
 
 	evaluator=MosiEvaluator()
 
-	model_name="params_"+str(params)
+	model_name="m_"+str(params)
 	model_file=model_version+"models/"+model_name
 
-	opt = optim.Adam(mosi_model.parameters(), lr=params['learn_rate'])
+	opt = optim.Adam(mosi_model.parameters(), lr=params['lr'])
 	criterion = nn.BCEWithLogitsLoss()
 	e_tr_losses = []
 	e_val_losses = []
@@ -200,67 +202,44 @@ def train_mosi_sentiments(mosi_model,params):
 
 	evaluate_best_model(model_name,params)
 
-if __name__=='__main__':
-	print("started")
-	start_time = time.time()
 
+if __name__=='__main__':
+
+	print("started")
+	start_time = time.time()	
+	s_i,e_i=int(sys.argv[1]),int(sys.argv[2])
+
+	fp=gzip.open("params_set.pkl",'rb')
+	params_list=pkl.load(fp)
+	params_list=params_list[s_i:e_i]
+
+	num_atten=3
 	out_dim=1
 
-	# lan_hid_dim=200
-	# face_hid_dim=32
-	# context_dim=128
-	# learning_rate=0.0001
+	for param in params_list:
+		print param 
+		(lan_hid_dim,audio_hid_dim,face_hid_dim,learning_rate)=param 
+		lan_param={'input_dim':len(w_dim_index),'hidden_dim':lan_hid_dim}
+		audio_param={'input_dim':len(covarep_dim_index),'hidden_dim':audio_hid_dim}
+		face_param={'input_dim':len(facet_dim_index),'hidden_dim':face_hid_dim}
 
-	lan_hid_dim_list=[250]
-	face_hid_dim_list=[32]
-	context_dim_list=[128]
-	learnig_rate_list=[0.00066]
+		context_dim=(2*(lan_hid_dim+audio_hid_dim+face_hid_dim))/3
 
-	for lan_hid_dim in lan_hid_dim_list:
-		for face_hid_dim in face_hid_dim_list:
-			for context_dim in context_dim_list:
-				for learning_rate in learnig_rate_list:
-					lan_param={'input_dim':len(w_dim_index),'hidden_dim':lan_hid_dim,'context_dim':context_dim}
-					face_param={'input_dim':len(facet_dim_index),'hidden_dim':face_hid_dim,'context_dim':context_dim}
+		print lan_param,audio_param,face_param,context_dim
 
-					params={'lan_hid_dim':lan_hid_dim,'face_hid_dim':face_hid_dim,'contxt_dim':context_dim,'learn_rate':learning_rate}
+		if (helper_gpu_mode and torch.cuda.is_available()):
+			print("gpu found")
+			mosi_model=MOSI_attention_classifier(lan_param,audio_param,face_param,num_atten,context_dim,out_dim).cuda()
+		else:
+			mosi_model=MOSI_attention_classifier(lan_param,audio_param,face_param,num_atten,context_dim,out_dim)
 
-					if (helper_gpu_mode and torch.cuda.is_available()):
-						print("gpu found")
-						mosi_model=MOSI_attention_classifier(lan_param,face_param,out_dim).cuda()
-					else:
-						mosi_model=MOSI_attention_classifier(lan_param,face_param,out_dim)
+		params_config={"l":lan_hid_dim,"a":audio_hid_dim,"f":face_hid_dim,"lr":learning_rate}
+		print params_config
+		train_mosi_sentiments(mosi_model,params_config)
 
-					train_mosi_sentiments(mosi_model,params)
+		break
 
-	# dim_params={'lan_hid_dim':lan_hid_dim,'face_hid_dim':face_hid_dim,'context_dim':context_dim}
 
-	# lan_param={'input_dim':len(w_dim_index),'hidden_dim':lan_hid_dim,'context_dim':context_dim}
-	# face_param={'input_dim':len(facet_dim_index),'hidden_dim':face_hid_dim,'context_dim':context_dim}
-
-	# params={'lan_hid_dim':lan_hid_dim,'face_hid_dim':face_hid_dim,'contxt_dim':context_dim,'learn_rate':learning_rate}
-
-	# if (helper_gpu_mode and torch.cuda.is_available()):
-	# 	print("gpu found")
-	# 	mosi_model=MOSI_attention_classifier(lan_param,face_param,out_dim).cuda()
-	# else:
-	# 	mosi_model=MOSI_attention_classifier(lan_param,face_param,out_dim)
-
-	# train_mosi_sentiments(mosi_model,params)
-
-	# learnig_rate_list=[0.00066,0.0066,0.0033,0.0001,0.001,0.01]
-	# hidden_dim_list=[200,128,100,64]	
-	
-	# for learnig_rate in learnig_rate_list:
-	# 	for hidden_dim in hidden_dim_list:
-
-	# 		if (helper_gpu_mode and torch.cuda.is_available()):
-	# 			print("gpu found")
-	# 			mosi_model=MOSI_sentiment_predictor(input_dim,hidden_dim,out_dim).cuda()
-	# 		else:
-	# 			mosi_model=MOSI_sentiment_predictor(input_dim,hidden_dim,out_dim)
-
-	# 		train_mosi_sentiments(mosi_model,learnig_rate,hidden_dim)
 	time_str="data loader---program run time "+str((time.time() - start_time))+"seconds ---"
 	f_name=model_version+"out.txt"
 	f=open(f_name,"a")

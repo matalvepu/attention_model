@@ -18,7 +18,7 @@ from mosi_model_evaluator import MosiEvaluator
 import datetime
 import csv 
 
-model_version="../experiment/attention_model/dummy/data_loader/"
+model_version="../experiment/attention_model/dummy/data_parallel/"
 # time_stamp=str(datetime.datetime.now())
 
 mini_batch_size=10	
@@ -192,8 +192,9 @@ def train_mosi_sentiments(mosi_model,params):
 		e_val_losses.append(valid_loss)
 
 		if valid_loss<best_valid_loss:
-			best_valid_loss=valid_loss			
-			mosi_model.save(open(model_file,'wb'))	
+			best_valid_loss=valid_loss
+			m_model=mosi_model.module			
+			m_model.save(open(model_file,'wb'))	
 
 		if (e%5==0):
 			print_loss(e_tr_losses,e_val_losses,model_name)
@@ -230,8 +231,8 @@ if __name__=='__main__':
 					if (helper_gpu_mode and torch.cuda.is_available()):
 						print("gpu found")
 						mosi_model=MOSI_attention_classifier(lan_param,face_param,out_dim)
-						model = nn.DataParallel(model)
-						model.to(device)
+						mosi_model = nn.DataParallel(mosi_model)
+						mosi_model.to(device)
 					else:
 						mosi_model=MOSI_attention_classifier(lan_param,face_param,out_dim)
 
@@ -265,7 +266,7 @@ if __name__=='__main__':
 	# 			mosi_model=MOSI_sentiment_predictor(input_dim,hidden_dim,out_dim)
 
 	# 		train_mosi_sentiments(mosi_model,learnig_rate,hidden_dim)
-	time_str="data loader---program run time "+str((time.time() - start_time))+"seconds ---"
+	time_str="data parallel---program run time "+str((time.time() - start_time))+"seconds ---"
 	f_name=model_version+"out.txt"
 	f=open(f_name,"a")
 	f.write(time_str)

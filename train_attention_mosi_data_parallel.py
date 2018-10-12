@@ -204,6 +204,8 @@ if __name__=='__main__':
 	print("started")
 	start_time = time.time()
 
+	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 	out_dim=1
 
 	# lan_hid_dim=200
@@ -227,7 +229,9 @@ if __name__=='__main__':
 
 					if (helper_gpu_mode and torch.cuda.is_available()):
 						print("gpu found")
-						mosi_model=MOSI_attention_classifier(lan_param,face_param,out_dim).cuda()
+						mosi_model=MOSI_attention_classifier(lan_param,face_param,out_dim)
+						model = nn.DataParallel(model)
+						model.to(device)
 					else:
 						mosi_model=MOSI_attention_classifier(lan_param,face_param,out_dim)
 

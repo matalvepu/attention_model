@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -J kamrul_eval
-#SBATCH -o ../experiment/attention_model/dummy/data_loader/out/my_output_%j
+#SBATCH -o ../experiment/attention_model/dummy/data_parallel/out/my_output_%j
 #SBATCH --mem=32GB
 #SBATCH -t 5-00:00:00
 #SBATCH -n 1
@@ -12,4 +12,4 @@
 module load anaconda
 module load cuda
 
-python ~/ets/deep_learning/attention_model/train_attention_mosi_data_loader.py
+python ~/ets/deep_learning/attention_model/train_attention_mosi_data_parallel.py

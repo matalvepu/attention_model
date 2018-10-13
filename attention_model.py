@@ -110,18 +110,28 @@ class Memory_attention_network(nn.Module):
         super(Memory_attention_network,self).__init__()
         self.hidden_comb_dim=hidden_comb_dim
         self.num_atten=num_atten
-        self.attention_weigths=[nn.Linear(context_dim,hidden_comb_dim) for i in range(num_atten)]
-        self.W_ac = nn.Linear(hidden_comb_dim,context_dim)
+        #self.attention_weigths=[nn.Linear(context_dim,hidden_comb_dim).cuda() for i in range(num_atten)]
+        self.att_w1=nn.Linear(context_dim,hidden_comb_dim)
+	self.att_w2=nn.Linear(context_dim,hidden_comb_dim)
+	self.att_w3=nn.Linear(context_dim,hidden_comb_dim)
+	self.W_ac = nn.Linear(hidden_comb_dim,context_dim)
         self.s=nn.Softmax()
 
     def forward(self,h_i,z):
-
+	#print "z in",z
         h=variablize(torch.zeros(self.hidden_comb_dim).view(1,-1))
-        for i in range(self.num_atten):
-            w_t=self.s(self.attention_weigths[i](z))
-            h_t=torch.mul(h_i,w_t)
-            h+=h_t
-
+	wt1=self.s(self.att_w1(z))
+	wt2=self.s(self.att_w2(z))
+	wt3=self.s(self.att_w3(z))
+	h+=torch.mul(h_i,wt1)
+	h+=torch.mul(h_i,wt2)
+	h+=torch.mul(h_i,wt3)
+        #for i in range(self.num_atten):
+	#    print "self atten", self.attention_weigths[i].weight.device
+        #    w_t=self.s(self.attention_weigths[i](z))
+        #    h_t=torch.mul(h_i,w_t)
+        #    h+=h_t
+	#print "h",h.device
         z=self.W_ac(h)
 
         return z 
@@ -156,7 +166,8 @@ class MOSI_attention_classifier(nn.Module,ModelIO):
 
 
     def forward(self,opinion):
-
+	#print self.lan_lstm.W_xi.weight.device
+        #print self.mab_net.W_ac.weight.device
         s=nn.Softmax()
         for i,x in enumerate(opinion):
             x_lan,x_audio,x_face=filter_train_features(x)
@@ -191,7 +202,7 @@ class MOSI_attention_classifier(nn.Module,ModelIO):
             # print "atten_weights",attn_weigths
             # print "h_atten",h_atten
             # print "z",z 
-
+	#print "z",z
         out = self.W_cout(z)
         # print "out", out
         return out

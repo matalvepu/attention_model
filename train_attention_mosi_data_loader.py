@@ -25,12 +25,6 @@ model_version="../experiment/attention_model/dummy/data_loader/"
 
 mini_batch_size=10	
 
-# def load_data(file_name):
-# 	fp=gzip.open(file_name,'rb') 
-# 	data =cPickle.load(fp)
-# 	fp.close()
-# 	return data["x"],data["y"]
-
 def save_result(model_name,eval_results,params):
 	print params
 
@@ -59,37 +53,25 @@ def print_loss(e_tr_losses,e_val_losses,model_name):
 	plt.savefig(fig_name)
 	plt.close()
 
-# # train_x,train_y=load_data('../mosi_data/COVAREP/train_matrix.pkl')
-# # train_data_loader=get_data_loader(train_x,train_y)
-
-# print("loaded train data loader")
-# test_x,test_y=load_data('../mosi_data/COVAREP/test_matrix.pkl')
-# print("loaded test")
-# valid_x,valid_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
-# print("loaded valid")
-
-train_x,train_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
-
-print("loaded train data loader")
-test_x,test_y=train_x[0:30],train_y[0:30]
-
-valid_x,valid_y=train_x[30:50],train_y[30:50]
-print("loaded valid")
-
-train_x,train_y=train_x[50:],train_y[50:]
+train_x,train_y=load_data('../mosi_data/COVAREP/train_matrix.pkl')
 train_data_loader=get_data_loader(train_x,train_y)
 
-def get_mini_batch_list(batch_size):
-	index_arr=np.arange(len(train_x))
+print("loaded train data loader")
+test_x,test_y=load_data('../mosi_data/COVAREP/test_matrix.pkl')
+print("loaded test")
+valid_x,valid_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
+print("loaded valid")
 
-	np.random.shuffle(index_arr)
-	index_arr=index_arr.tolist()
+#train_x,train_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
 
-	mini_batch_list=[]
-	for i in range(0,len(index_arr),batch_size):
-		mini_batch_list.append(index_arr[i:i+batch_size])
+#print("loaded train data loader")
+#test_x,test_y=train_x[0:30],train_y[0:30]
 
-	return mini_batch_list
+#valid_x,valid_y=train_x[30:50],train_y[30:50]
+#print("loaded valid")
+
+#train_x,train_y=train_x[50:],train_y[50:]
+#train_data_loader=get_data_loader(train_x,train_y)
 
 
 def train_epoch(mosi_model,opt,criterion):
@@ -100,28 +82,6 @@ def train_epoch(mosi_model,opt,criterion):
 		for j,x in enumerate(seq):
 			x=get_unpad_data(x)
 			y=variablize(torch.FloatTensor([[label[j]]]))
-			y_hat=mosi_model.forward(x)
-			loss = criterion(y_hat, y)
-			mini_batch_losses.append(loss)
-
-		mini_batch_loss=reduce(torch.add,mini_batch_losses)/len(mini_batch_losses)
-		mini_batch_loss.backward()
-		opt.step()
-		losses.append(mini_batch_loss.cpu().data.numpy())
-
-	return np.nanmean(losses)
-
-def train_epoch_minibatch(mosi_model,opt,criterion):
-	losses = []
-
-	mini_batch_list=get_mini_batch_list(mini_batch_size)
-	mosi_model.train()
-	for mini_batch in mini_batch_list:		
-		opt.zero_grad()
-		mini_batch_losses=[]
-		for i in mini_batch:
-			x=train_x[i]
-			y=variablize(torch.FloatTensor([train_y[i]]))
 			y_hat=mosi_model.forward(x)
 			loss = criterion(y_hat, y)
 			mini_batch_losses.append(loss)
@@ -153,10 +113,11 @@ def evaluate_best_model(model_name,params):
 	evaluator=MosiEvaluator()
 	model_file=model_version+"models/"+model_name
 
-	d_lan_param={'input_dim':1,'hidden_dim':1,'context_dim':1}
-	d_face_param={'input_dim':1,'hidden_dim':1,'context_dim':1}
+	d_lan_param={'input_dim':1,'hidden_dim':1}
+	d_audio_param={'input_dim':1,'hidden_dim':1}
+	d_face_param={'input_dim':1,'hidden_dim':1}
 	
-	best_model=MOSI_attention_classifier(d_lan_param,d_face_param,1)
+	best_model=MOSI_attention_classifier(d_lan_param,d_audio_param,d_face_param,1,20,1)
 	best_model.load(open(model_file,'rb'))
 
 	comment="validtion evaluation for best model: "+model_name
@@ -182,7 +143,7 @@ def train_mosi_sentiments(mosi_model,params):
 	criterion = nn.BCEWithLogitsLoss()
 	e_tr_losses = []
 	e_val_losses = []
-	num_epochs = 40
+	num_epochs = 200
 
 	best_valid_loss=np.inf
 
@@ -240,7 +201,7 @@ if __name__=='__main__':
 		break
 
 
-	time_str="data loader---program run time "+str((time.time() - start_time))+"seconds ---"
+	time_str="multiple attention full data program run time "+str((time.time() - start_time))+"seconds ---"
 	f_name=model_version+"out.txt"
 	f=open(f_name,"a")
 	f.write(time_str)

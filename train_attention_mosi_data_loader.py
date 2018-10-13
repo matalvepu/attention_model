@@ -76,8 +76,10 @@ print("loaded valid")
 
 def train_epoch(mosi_model,opt,criterion):
 	losses=[]
+	mosi_model.train()
 	for i, data in enumerate(train_data_loader):
 		seq ,label = data
+		opt.zero_grad()
 		mini_batch_losses=[]
 		for j,x in enumerate(seq):
 			x=get_unpad_data(x)
@@ -191,7 +193,7 @@ if __name__=='__main__':
 		face_param={'input_dim':len(facet_dim_index),'hidden_dim':face_hid_dim}
 
 		context_dim=(1*(lan_hid_dim+audio_hid_dim+face_hid_dim))/3
-
+		learning_rate=0.00363
 		print lan_param,audio_param,face_param,context_dim
 
 		if (helper_gpu_mode and torch.cuda.is_available()):

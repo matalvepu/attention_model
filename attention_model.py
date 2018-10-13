@@ -131,12 +131,13 @@ class Memory_attention_network(nn.Module):
     	self.att_w2=nn.Linear(context_dim,hidden_comb_dim)
     	self.att_w3=nn.Linear(context_dim,hidden_comb_dim)
     	self.W_ac = nn.Linear(hidden_comb_dim,context_dim)
-        self.s=nn.LogSoftmax()
+        self.s=nn.Softmax(dim=1)
 
     def forward(self,h_i,z):
 	#print "z in",z
         h=variablize(torch.zeros(self.hidden_comb_dim).view(1,-1))
         wt1=self.s(self.att_w1(z))
+        # print "***********wt1****************",wt1
         wt2=self.s(self.att_w2(z))
         wt3=self.s(self.att_w3(z))
         h+=torch.mul(h_i,wt1)

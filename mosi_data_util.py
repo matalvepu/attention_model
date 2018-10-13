@@ -81,7 +81,7 @@ def load_data(file_name):
 
 def get_data_loader(x,y):
 	data=MosiDataset(x,y)
-	d_loader=DataLoader(data, batch_size=30, shuffle=True, num_workers=10, collate_fn=PadCollate(dim=0))
+	d_loader=DataLoader(data, batch_size=10, shuffle=True, num_workers=10, collate_fn=PadCollate(dim=0))
 	return d_loader
 
 

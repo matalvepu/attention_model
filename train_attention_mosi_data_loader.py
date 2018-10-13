@@ -62,16 +62,16 @@ print("loaded test")
 valid_x,valid_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
 print("loaded valid")
 
-#train_x,train_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
+# train_x,train_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
 
-#print("loaded train data loader")
-#test_x,test_y=train_x[0:30],train_y[0:30]
+# print("loaded train data loader")
+# test_x,test_y=train_x[0:30],train_y[0:30]
 
-#valid_x,valid_y=train_x[30:50],train_y[30:50]
-#print("loaded valid")
+# valid_x,valid_y=train_x[30:50],train_y[30:50]
+# print("loaded valid")
 
-#train_x,train_y=train_x[50:],train_y[50:]
-#train_data_loader=get_data_loader(train_x,train_y)
+# train_x,train_y=train_x[50:],train_y[50:]
+# train_data_loader=get_data_loader(train_x,train_y)
 
 
 def train_epoch(mosi_model,opt,criterion):
@@ -141,13 +141,15 @@ def train_mosi_sentiments(mosi_model,params):
 
 	opt = optim.Adam(mosi_model.parameters(), lr=params['lr'])
 	criterion = nn.BCEWithLogitsLoss()
+	# criterion = nn.MSELoss()
 	e_tr_losses = []
 	e_val_losses = []
-	num_epochs = 200
+	num_epochs = 20
 
 	best_valid_loss=np.inf
 
 	for e in range(num_epochs):
+		print "epoch",e 
 		train_loss=train_epoch(mosi_model, opt, criterion)
 		e_tr_losses.append(train_loss)
 
@@ -155,11 +157,15 @@ def train_mosi_sentiments(mosi_model,params):
 		e_val_losses.append(valid_loss)
 
 		if valid_loss<best_valid_loss:
-			best_valid_loss=valid_loss			
+			best_valid_loss=valid_loss
+			print "best valid loss",best_valid_loss			
 			mosi_model.save(open(model_file,'wb'))	
 
 		if (e%5==0):
 			print_loss(e_tr_losses,e_val_losses,model_name)
+
+		print "e_tr_losses",e_tr_losses
+		print "e_val_losses",e_val_losses
 
 	evaluate_best_model(model_name,params)
 
@@ -184,7 +190,7 @@ if __name__=='__main__':
 		audio_param={'input_dim':len(covarep_dim_index),'hidden_dim':audio_hid_dim}
 		face_param={'input_dim':len(facet_dim_index),'hidden_dim':face_hid_dim}
 
-		context_dim=(2*(lan_hid_dim+audio_hid_dim+face_hid_dim))/3
+		context_dim=(1*(lan_hid_dim+audio_hid_dim+face_hid_dim))/3
 
 		print lan_param,audio_param,face_param,context_dim
 

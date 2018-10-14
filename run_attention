@@ -12,4 +12,4 @@
 module load anaconda
 module load cuda
 
-python ~/ets/deep_learning/attention_model/train_attention_mosi_data_loader.py 0 100
+python ~/ets/deep_learning/attention_model/train_attention_mosi_data_loader.py 0 12

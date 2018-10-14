@@ -146,12 +146,11 @@ def train_mosi_sentiments(mosi_model,params):
 	# criterion = nn.MSELoss()
 	e_tr_losses = []
 	e_val_losses = []
-	num_epochs = 20
+	num_epochs = 200
 
 	best_valid_loss=np.inf
 
 	for e in range(num_epochs):
-		print "epoch",e 
 		train_loss=train_epoch(mosi_model, opt, criterion)
 		e_tr_losses.append(train_loss)
 
@@ -166,8 +165,6 @@ def train_mosi_sentiments(mosi_model,params):
 		if (e%5==0):
 			print_loss(e_tr_losses,e_val_losses,model_name)
 
-		print "e_tr_losses",e_tr_losses
-		print "e_val_losses",e_val_losses
 
 	evaluate_best_model(model_name,params)
 
@@ -192,8 +189,7 @@ if __name__=='__main__':
 		audio_param={'input_dim':len(covarep_dim_index),'hidden_dim':audio_hid_dim}
 		face_param={'input_dim':len(facet_dim_index),'hidden_dim':face_hid_dim}
 
-		context_dim=(1*(lan_hid_dim+audio_hid_dim+face_hid_dim))/3
-		learning_rate=0.00363
+		context_dim=int((2*(lan_hid_dim+audio_hid_dim+face_hid_dim))/3)
 		print lan_param,audio_param,face_param,context_dim
 
 		if (helper_gpu_mode and torch.cuda.is_available()):
@@ -205,8 +201,6 @@ if __name__=='__main__':
 		params_config={"l":lan_hid_dim,"a":audio_hid_dim,"f":face_hid_dim,"lr":learning_rate}
 		print params_config
 		train_mosi_sentiments(mosi_model,params_config)
-
-		break
 
 
 	time_str="multiple attention full data program run time "+str((time.time() - start_time))+"seconds ---"

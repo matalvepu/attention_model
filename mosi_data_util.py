@@ -81,7 +81,7 @@ def load_data(file_name):
 
 def get_data_loader(x,y):
 	data=MosiDataset(x,y)
-	d_loader=DataLoader(data, batch_size=30, shuffle=True, num_workers=10, collate_fn=PadCollate(dim=0))
+	d_loader=DataLoader(data, batch_size=40, shuffle=True, num_workers=10, collate_fn=PadCollate(dim=0))
 	return d_loader
 
 
@@ -91,8 +91,24 @@ def get_unpad_data(x):
 	return x
 
 
-# valid_x,valid_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
-# # print valid_x 
+# valid_x,valid_y=load_data('../mosi_data/COVAREP/train_matrix.pkl')
+# covarep_dim_index=range(300,374)
+# # x_audio=np.take(valid_x,covarep_dim_index,axis=1)
+# print valid_x.shape
+# # print len(x_audio)
+# l=0
+# for x in valid_x:
+#     l+=1
+#     x=np.array(x)
+#     x=np.take(x,covarep_dim_index,axis=1)
+#     for x_r in x:
+#         x_r=np.array(x_r)
+#         if np.isnan(x_r).any():
+#             print "nan is ere,",x_r
+
+
+
+# print l
 # # print valid_y
 # x=np.array(valid_x[0])
 # print x.shape

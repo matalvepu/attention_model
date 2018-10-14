@@ -102,7 +102,6 @@ class LSTM_custom(nn.Module):
         h_ = o * torch.tanh(c_)
         if torch.isnan(h_[0][0]):
             print "h nan",h_
-            print "x",x 
             # print "self.W_xi",self.W_xi.weight
             # print self.W_hi.weight 
             # print self.W_xf.weight  

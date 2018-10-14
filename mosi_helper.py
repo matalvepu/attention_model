@@ -17,8 +17,6 @@ w_dim_index=range(0,300)
 covarep_dim_index=range(300,374)
 # facet_dim_index=range(1885,1932)
 facet_dim_index=range(374,421)
-facet_dim_index=[3,4]
-
 #test
 # w_dim_index=range(0,3)
 # covarep_dim_index=range(3,6)

@@ -20,7 +20,7 @@ out_dim=1
 lan_hidden_list=[184,228,256]
 audio_hidden_list=[48,60]
 face_hidden_list=[32,40]
-learnig_rate_list=[0.000066,0.00066,0.0066,0.0001,0.01,0.1]
+learnig_rate_list=[0.000066,0.000363,0.00066,0.00363,0.0066,0.0001]
 params_list=[]
 
 for i in itertools.product(lan_hidden_list,audio_hidden_list,face_hidden_list,learnig_rate_list):

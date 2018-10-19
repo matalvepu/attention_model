@@ -35,7 +35,11 @@ class ModelIO():
                 model_content.update(self.__dict__)
         # Save state dictionary
         model_content['state_dict']=self.state_dict()
-        torch.save(model_content,fout)
+        try:
+            torch.save(model_content,fout)
+        except:
+            time.sleep(5)
+            torch.save(model_content,fout)
 
     def load(self,fin,map_location=None):
         '''
@@ -166,18 +170,18 @@ class MOSI_attention_classifier(nn.Module,ModelIO):
         super(MOSI_attention_classifier,self).__init__()
 
         self.lan_lstm=LSTM_custom(lan_param['input_dim'],lan_param['hidden_dim'],context_dim)
-        #self.audio_lstm=LSTM_custom(audio_param['input_dim'],audio_param['hidden_dim'],context_dim)
+        self.audio_lstm=LSTM_custom(audio_param['input_dim'],audio_param['hidden_dim'],context_dim)
         self.face_lstm=LSTM_custom(face_param['input_dim'],face_param['hidden_dim'],context_dim)
         
         self.num_atten=num_atten
         self.context_dim=context_dim
-        self.hidden_comb_dim=lan_param['hidden_dim']+face_param['hidden_dim']
+        self.hidden_comb_dim=lan_param['hidden_dim']+audio_param['hidden_dim']+face_param['hidden_dim']
 
         self.mab_net = Memory_attention_network(self.hidden_comb_dim,self.context_dim,self.num_atten)
         self.W_cout = nn.Linear(self.context_dim,out_dim)
 
         self.lan_init_param = self.init_lstm_param(lan_param['hidden_dim'])
-        #self.audio_init_param = self.init_lstm_param(audio_param['hidden_dim']) 
+        self.audio_init_param = self.init_lstm_param(audio_param['hidden_dim']) 
         self.face_init_param = self.init_lstm_param(face_param['hidden_dim'])
         # self.W_ac = nn.Linear(self.hidden_comb_dim,context_dim)
         # self.sig=nn.Sigmoid()        
@@ -190,27 +194,27 @@ class MOSI_attention_classifier(nn.Module,ModelIO):
         for i,x in enumerate(opinion):
             x_lan,x_audio,x_face=filter_train_features(x)
             x_lan=variablize(torch.FloatTensor(x_lan))
-            # x_audio=variablize(torch.FloatTensor(x_audio))
+            x_audio=variablize(torch.FloatTensor(x_audio))
             x_face=variablize(torch.FloatTensor(x_face))
 
             #lhtmstep 
             if i==0:
                 if self.training:
                     self.lan_lstm.dropout()
-                    # self.audio_lstm.dropout()
+                    self.audio_lstm.dropout()
                     self.face_lstm.dropout()
 
                 z_init = self.init_context_var(self.context_dim)
                 h_lan,c_lan=self.lan_lstm.forward(x_lan,self.lan_init_param,z_init)
-                #h_audio,c_audio=self.audio_lstm.forward(x_audio,self.audio_init_param,z_init)
+                h_audio,c_audio=self.audio_lstm.forward(x_audio,self.audio_init_param,z_init)
                 h_face,c_face=self.face_lstm.forward(x_face,self.face_init_param,z_init)
-                h_i=torch.cat((h_lan,h_face),1)           
+                h_i=torch.cat((h_lan,h_audio,h_face),1)           
                 z=self.mab_net.forward(h_i,z_init)
             else:
                 h_lan,c_lan=self.lan_lstm.forward(x_lan,(h_lan,c_lan),z)
-                #h_audio,c_audio=self.audio_lstm.forward(x_audio,(h_audio,c_audio),z)
+                h_audio,c_audio=self.audio_lstm.forward(x_audio,(h_audio,c_audio),z)
                 h_face,c_face=self.face_lstm.forward(x_face,(h_face,c_face),z)
-                h_i=torch.cat((h_lan,h_face),1)
+                h_i=torch.cat((h_lan,h_audio,h_face),1)
                 z=self.mab_net.forward(h_i,z)
 
             # z=self.W_ac(h_i)

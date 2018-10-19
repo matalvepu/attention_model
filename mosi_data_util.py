@@ -91,11 +91,13 @@ def get_unpad_data(x):
 	return x
 
 
-# valid_x,valid_y=load_data('../mosi_data/COVAREP/train_matrix.pkl')
+# valid_x,valid_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
 # covarep_dim_index=range(300,374)
 # # x_audio=np.take(valid_x,covarep_dim_index,axis=1)
-# print valid_x.shape
+# # print x_audio
+# # print x_audio.shape
 # # print len(x_audio)
+# print valid_x
 # l=0
 # for x in valid_x:
 #     l+=1

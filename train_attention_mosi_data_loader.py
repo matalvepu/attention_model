@@ -23,7 +23,7 @@ import sys
 model_version="../experiment/attention_model/dummy/data_loader/"
 # time_stamp=str(datetime.datetime.now())
 
-mini_batch_size=10	
+mini_batch_size=20
 
 def save_result(model_name,eval_results,params):
 	print params
@@ -53,13 +53,12 @@ def print_loss(e_tr_losses,e_val_losses,model_name):
 	plt.savefig(fig_name)
 	plt.close()
 
-train_x,train_y=load_data('../mosi_data/COVAREP/train_matrix.pkl')
+train_x,train_y=load_data('../mosi_data/scaled/COVAREP/train_matrix.pkl')
 train_data_loader=get_data_loader(train_x,train_y)
-
 print("loaded train data loader")
-test_x,test_y=load_data('../mosi_data/COVAREP/test_matrix.pkl')
+test_x,test_y=load_data('../mosi_data/scaled/COVAREP/test_matrix.pkl')
 print("loaded test")
-valid_x,valid_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
+valid_x,valid_y=load_data('../mosi_data/scaled/COVAREP/valid_matrix.pkl')
 print("loaded valid")
 
 # train_x,train_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
@@ -159,8 +158,12 @@ def train_mosi_sentiments(mosi_model,params):
 
 		if valid_loss<best_valid_loss:
 			best_valid_loss=valid_loss
-			print "best valid loss",best_valid_loss			
-			mosi_model.save(open(model_file,'wb'))	
+			print "best valid loss",best_valid_loss	
+			#mosi_model.cpu().save(open(model_file,'wb'))
+			try:		
+				mosi_model.cpu().save(open(model_file,'wb'))
+			except:
+				pass	
 
 		if (e%5==0):
 			print_loss(e_tr_losses,e_val_losses,model_name)
@@ -181,7 +184,7 @@ if __name__=='__main__':
 
 	num_atten=3
 	out_dim=1
-
+	#params_list=[(228,40,32,0.00066)]
 	for param in params_list:
 		print param 
 		(lan_hid_dim,audio_hid_dim,face_hid_dim,learning_rate)=param 

@@ -161,8 +161,9 @@ def train_mosi_sentiments(mosi_model,params):
 			print "best valid loss",best_valid_loss	
 			#mosi_model.cpu().save(open(model_file,'wb'))
 			try:		
-				mosi_model.cpu().save(open(model_file,'wb'))
+				mosi_model.cpu().save(open(model_file,'wb'))				
 			except:
+				print "error happended due to save model file",model_name,"epoch num",e
 				pass	
 
 		if (e%5==0):
@@ -197,10 +198,17 @@ if __name__=='__main__':
 
 		if (helper_gpu_mode and torch.cuda.is_available()):
 			print("gpu found")
-			mosi_model=MOSI_attention_classifier(lan_param,audio_param,face_param,num_atten,context_dim,out_dim).cuda()
+			try:
+				mosi_model=MOSI_attention_classifier(lan_param,audio_param,face_param,num_atten,context_dim,out_dim).cuda()
+			except:
+				print "error happended in model",param 
+				pass
 		else:
-			mosi_model=MOSI_attention_classifier(lan_param,audio_param,face_param,num_atten,context_dim,out_dim)
-
+			try:
+				mosi_model=MOSI_attention_classifier(lan_param,audio_param,face_param,num_atten,context_dim,out_dim)
+			except:
+				print "error happended in model",param 
+				pass
 		params_config={"l":lan_hid_dim,"a":audio_hid_dim,"f":face_hid_dim,"lr":learning_rate}
 		print params_config
 		train_mosi_sentiments(mosi_model,params_config)

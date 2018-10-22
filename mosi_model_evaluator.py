@@ -30,6 +30,7 @@ class MosiEvaluator():
 			for i in range(len(feature_x)):
 				x=feature_x[i]
 				y_hat=model.forward(x)
+				y_hat = torch.sigmoid(y_hat[0][0])
 
 				if y_hat>=0.5:
 					predicted_y.append(1)

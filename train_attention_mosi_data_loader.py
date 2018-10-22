@@ -21,6 +21,7 @@ import csv
 import sys
 
 model_version="../experiment/attention_model/dummy/data_loader/"
+#model_version="/scratch/mhasan8/experiment/attention_model/dummy/data_loader/"
 # time_stamp=str(datetime.datetime.now())
 
 mini_batch_size=20
@@ -145,7 +146,7 @@ def train_mosi_sentiments(mosi_model,params):
 	# criterion = nn.MSELoss()
 	e_tr_losses = []
 	e_val_losses = []
-	num_epochs = 200
+	num_epochs = 30
 
 	best_valid_loss=np.inf
 
@@ -161,14 +162,14 @@ def train_mosi_sentiments(mosi_model,params):
 			print "best valid loss",best_valid_loss	
 			#mosi_model.cpu().save(open(model_file,'wb'))
 			try:		
-				mosi_model.cpu().save(open(model_file,'wb'))				
+				mosi_model.save(open(model_file,'wb'))				
 			except:
 				print "error happended due to save model file",model_name,"epoch num",e
 				pass	
 
 		if (e%5==0):
 			print_loss(e_tr_losses,e_val_losses,model_name)
-
+		print "epoch",e
 
 	evaluate_best_model(model_name,params)
 
@@ -185,7 +186,7 @@ if __name__=='__main__':
 
 	num_atten=3
 	out_dim=1
-	#params_list=[(228,40,32,0.00066)]
+	params_list=[(264,60,40,0.000066)]
 	for param in params_list:
 		print param 
 		(lan_hid_dim,audio_hid_dim,face_hid_dim,learning_rate)=param 

@@ -324,9 +324,17 @@ def test_model():
 
     mosi_model=MOSI_attention_classifier(lan_param,audio_param,face_param,num_atten,context_dim,out_dim)
     # print mosi_model
-    print mosi_model.forward(opinion)
+    a=mosi_model.forward(opinion)
+    b=a[0][0]
+    print a
+    print b
+    s=torch.sigmoid(b)
+    print s
+    if a>1:
+        print "True"
+    else:
+        print "false"
 
 
 
 # test_model()
-

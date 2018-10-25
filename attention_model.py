@@ -75,7 +75,7 @@ class LSTM_custom(nn.Module):
         self.W_ho = nn.Linear(hidden_dim,hidden_dim)
         self.W_zo = nn.Linear(context_dim,hidden_dim)
         self.W_zi = nn.Linear(context_dim,hidden_dim)
-        self.drop = nn.Dropout(0.1)
+        self.drop = nn.Dropout(0.20)
 
 
     def dropout(self):
@@ -135,6 +135,24 @@ class Memory_attention_network(nn.Module):
     	self.att_w3=nn.Linear(context_dim,hidden_comb_dim)
     	self.W_ac = nn.Linear(hidden_comb_dim,context_dim)
         self.s=nn.Softmax(dim=1)
+        self.drop = nn.Dropout(0.15)
+        
+    def dropout(self):
+        s_dict= self.att_w1.state_dict()
+        s_dict['weight']=self.drop(s_dict['weight'])
+        self.att_w1.load_state_dict(s_dict)
+
+        s_dict= self.att_w2.state_dict()
+        s_dict['weight']=self.drop(s_dict['weight'])
+        self.att_w2.load_state_dict(s_dict)
+
+        s_dict= self.att_w3.state_dict()
+        s_dict['weight']=self.drop(s_dict['weight'])
+        self.att_w3.load_state_dict(s_dict)
+
+        # s_dict= self.W_ac.state_dict()
+        # s_dict['weight']=self.drop(s_dict['weight'])
+        # self.W_ac.load_state_dict(s_dict)
 
     def forward(self,h_i,z):
 	#print "z in",z
@@ -183,6 +201,7 @@ class MOSI_attention_classifier(nn.Module,ModelIO):
         self.lan_init_param = self.init_lstm_param(lan_param['hidden_dim'])
         self.audio_init_param = self.init_lstm_param(audio_param['hidden_dim']) 
         self.face_init_param = self.init_lstm_param(face_param['hidden_dim'])
+        self.z_init = self.init_context_var(self.context_dim)
         # self.W_ac = nn.Linear(self.hidden_comb_dim,context_dim)
         # self.sig=nn.Sigmoid()        
 
@@ -203,13 +222,14 @@ class MOSI_attention_classifier(nn.Module,ModelIO):
                     self.lan_lstm.dropout()
                     self.audio_lstm.dropout()
                     self.face_lstm.dropout()
+                    self.mab_net.dropout()
 
-                z_init = self.init_context_var(self.context_dim)
-                h_lan,c_lan=self.lan_lstm.forward(x_lan,self.lan_init_param,z_init)
-                h_audio,c_audio=self.audio_lstm.forward(x_audio,self.audio_init_param,z_init)
-                h_face,c_face=self.face_lstm.forward(x_face,self.face_init_param,z_init)
+                # z_init = self.init_context_var(self.context_dim)
+                h_lan,c_lan=self.lan_lstm.forward(x_lan,self.lan_init_param,self.z_init)
+                h_audio,c_audio=self.audio_lstm.forward(x_audio,self.audio_init_param,self.z_init)
+                h_face,c_face=self.face_lstm.forward(x_face,self.face_init_param,self.z_init)
                 h_i=torch.cat((h_lan,h_audio,h_face),1)           
-                z=self.mab_net.forward(h_i,z_init)
+                z=self.mab_net.forward(h_i,self.z_init)
             else:
                 h_lan,c_lan=self.lan_lstm.forward(x_lan,(h_lan,c_lan),z)
                 h_audio,c_audio=self.audio_lstm.forward(x_audio,(h_audio,c_audio),z)

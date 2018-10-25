@@ -20,11 +20,11 @@ import datetime
 import csv 
 import sys
 
-model_version="../experiment/attention_model/dummy/data_loader/"
+model_version="../experiment/attention_model/data_loader/"
 #model_version="/scratch/mhasan8/experiment/attention_model/dummy/data_loader/"
 # time_stamp=str(datetime.datetime.now())
 
-mini_batch_size=20
+mini_batch_size=100
 
 def save_result(model_name,eval_results,params):
 	print params
@@ -54,12 +54,12 @@ def print_loss(e_tr_losses,e_val_losses,model_name):
 	plt.savefig(fig_name)
 	plt.close()
 
-train_x,train_y=load_data('../mosi_data/scaled/COVAREP/train_matrix.pkl')
+train_x,train_y=load_data('../mosi_data/normalized/COVAREP/train_matrix.pkl')
 train_data_loader=get_data_loader(train_x,train_y)
 print("loaded train data loader")
-test_x,test_y=load_data('../mosi_data/scaled/COVAREP/test_matrix.pkl')
+test_x,test_y=load_data('../mosi_data/normalized/COVAREP/test_matrix.pkl')
 print("loaded test")
-valid_x,valid_y=load_data('../mosi_data/scaled/COVAREP/valid_matrix.pkl')
+valid_x,valid_y=load_data('../mosi_data/normalized/COVAREP/valid_matrix.pkl')
 print("loaded valid")
 
 # train_x,train_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
@@ -133,12 +133,24 @@ def evaluate_best_model(model_name,params):
 	save_result(model_name,eval_results,params)
 
 
+def evaluate_new_valid_model(best_model,model_name,params):
+	evaluator=MosiEvaluator()
+	comment="validtion evaluation for best model: "+model_name
+	print(comment)
+	eval_val = evaluator.evaluate(best_model,valid_x,valid_y)
+	comment="test evaluation for best model: "+model_name
+	print(comment)
+	eval_test = evaluator.evaluate(best_model,test_x,test_y)
+
+	eval_results=eval_val+eval_test
+	save_result(model_name,eval_results,params)
+
 
 def train_mosi_sentiments(mosi_model,params):
 
 	evaluator=MosiEvaluator()
 
-	model_name="m_"+str(params)
+	model_name="m_mab15_l35_v2"+str(params)
 	model_file=model_version+"models/"+model_name
 
 	opt = optim.Adam(mosi_model.parameters(), lr=params['lr'])
@@ -146,7 +158,7 @@ def train_mosi_sentiments(mosi_model,params):
 	# criterion = nn.MSELoss()
 	e_tr_losses = []
 	e_val_losses = []
-	num_epochs = 30
+	num_epochs = 200
 
 	best_valid_loss=np.inf
 
@@ -161,6 +173,7 @@ def train_mosi_sentiments(mosi_model,params):
 			best_valid_loss=valid_loss
 			print "best valid loss",best_valid_loss	
 			#mosi_model.cpu().save(open(model_file,'wb'))
+			evaluate_new_valid_model(mosi_model,model_name,params)
 			try:		
 				mosi_model.save(open(model_file,'wb'))				
 			except:
@@ -169,6 +182,7 @@ def train_mosi_sentiments(mosi_model,params):
 
 		if (e%5==0):
 			print_loss(e_tr_losses,e_val_losses,model_name)
+
 		print "epoch",e
 
 	evaluate_best_model(model_name,params)
@@ -186,7 +200,7 @@ if __name__=='__main__':
 
 	num_atten=3
 	out_dim=1
-	params_list=[(264,60,40,0.000066)]
+	params_list=[(256,40,36,0.0001)]
 	for param in params_list:
 		print param 
 		(lan_hid_dim,audio_hid_dim,face_hid_dim,learning_rate)=param 

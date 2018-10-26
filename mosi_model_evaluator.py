@@ -48,7 +48,7 @@ class MosiEvaluator():
 		# print "pred: ",predicted_y
 		# print "target: ",target_y
 		# print "prob_y:",prob_y
-		# print acc,precision,recall,f1,auc
+		print acc,precision,recall,f1,auc
 
 		return [acc,precision,recall,f1,auc]
 

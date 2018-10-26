@@ -22,9 +22,6 @@ import sys
 
 model_version="../experiment/attention_model/data_loader/"
 #model_version="/scratch/mhasan8/experiment/attention_model/dummy/data_loader/"
-# time_stamp=str(datetime.datetime.now())
-
-mini_batch_size=100
 
 def save_result(model_name,eval_results,params):
 	print params
@@ -32,10 +29,9 @@ def save_result(model_name,eval_results,params):
 	eval_results=[model_name]+eval_results
 
 	for key,value in params.iteritems():
-		print value
 		eval_results.append(value)
 
-	result_csv_file = model_version+"results/all_results.csv"	
+	result_csv_file = model_version+"results/mab_results.csv"	
 	with open(result_csv_file, 'a') as out_f:
 		wr = csv.writer(out_f)
 		wr.writerow(eval_results)
@@ -110,7 +106,7 @@ def validation_loss(mosi_model,criterion):
 	return np.nanmean(losses)
 
 
-def evaluate_best_model(model_name,params):
+def evaluate_best_model(model_name,params,epoch_num):
 
 	evaluator=MosiEvaluator()
 	model_file=model_version+"models/"+model_name
@@ -129,11 +125,11 @@ def evaluate_best_model(model_name,params):
 	print(comment)
 	eval_test = evaluator.evaluate(best_model,test_x,test_y)
 
-	eval_results=eval_val+eval_test
+	eval_results=eval_val+eval_test+[epoch_num]
 	save_result(model_name,eval_results,params)
 
 
-def evaluate_new_valid_model(best_model,model_name,params):
+def evaluate_new_valid_model(best_model,model_name,params,epoch_num):
 	evaluator=MosiEvaluator()
 	comment="validtion evaluation for best model: "+model_name
 	print(comment)
@@ -142,7 +138,7 @@ def evaluate_new_valid_model(best_model,model_name,params):
 	print(comment)
 	eval_test = evaluator.evaluate(best_model,test_x,test_y)
 
-	eval_results=eval_val+eval_test
+	eval_results=eval_val+eval_test+[epoch_num]
 	save_result(model_name,eval_results,params)
 
 
@@ -150,15 +146,14 @@ def train_mosi_sentiments(mosi_model,params):
 
 	evaluator=MosiEvaluator()
 
-	model_name="m_mab15_l35_v2"+str(params)
+	model_name="multi_atten"+str(params)
 	model_file=model_version+"models/"+model_name
 
 	opt = optim.Adam(mosi_model.parameters(), lr=params['lr'])
 	criterion = nn.BCEWithLogitsLoss()
-	# criterion = nn.MSELoss()
 	e_tr_losses = []
 	e_val_losses = []
-	num_epochs = 200
+	num_epochs = 1500
 
 	best_valid_loss=np.inf
 
@@ -172,8 +167,7 @@ def train_mosi_sentiments(mosi_model,params):
 		if valid_loss<best_valid_loss:
 			best_valid_loss=valid_loss
 			print "best valid loss",best_valid_loss	
-			#mosi_model.cpu().save(open(model_file,'wb'))
-			evaluate_new_valid_model(mosi_model,model_name,params)
+			evaluate_new_valid_model(mosi_model,model_name,params,e)
 			try:		
 				mosi_model.save(open(model_file,'wb'))				
 			except:
@@ -185,7 +179,7 @@ def train_mosi_sentiments(mosi_model,params):
 
 		print "epoch",e
 
-	evaluate_best_model(model_name,params)
+	evaluate_best_model(model_name,params,num_epochs)
 
 
 if __name__=='__main__':
@@ -200,10 +194,10 @@ if __name__=='__main__':
 
 	num_atten=3
 	out_dim=1
-	params_list=[(256,40,36,0.0001)]
+	#sparams_list=[(256,40,36,0.0001,0.15)]
 	for param in params_list:
 		print param 
-		(lan_hid_dim,audio_hid_dim,face_hid_dim,learning_rate)=param 
+		(lan_hid_dim,audio_hid_dim,face_hid_dim,learning_rate,drop_out)=param 
 		lan_param={'input_dim':len(w_dim_index),'hidden_dim':lan_hid_dim}
 		audio_param={'input_dim':len(covarep_dim_index),'hidden_dim':audio_hid_dim}
 		face_param={'input_dim':len(facet_dim_index),'hidden_dim':face_hid_dim}
@@ -214,17 +208,17 @@ if __name__=='__main__':
 		if (helper_gpu_mode and torch.cuda.is_available()):
 			print("gpu found")
 			try:
-				mosi_model=MOSI_attention_classifier(lan_param,audio_param,face_param,num_atten,context_dim,out_dim).cuda()
+				mosi_model=MOSI_attention_classifier(lan_param,audio_param,face_param,num_atten,context_dim,out_dim,drop_out).cuda()
 			except:
 				print "error happended in model",param 
 				pass
 		else:
 			try:
-				mosi_model=MOSI_attention_classifier(lan_param,audio_param,face_param,num_atten,context_dim,out_dim)
+				mosi_model=MOSI_attention_classifier(lan_param,audio_param,face_param,num_atten,context_dim,out_dim,drop_out)
 			except:
 				print "error happended in model",param 
 				pass
-		params_config={"l":lan_hid_dim,"a":audio_hid_dim,"f":face_hid_dim,"lr":learning_rate}
+		params_config={"l":lan_hid_dim,"a":audio_hid_dim,"f":face_hid_dim,"lr":learning_rate,"dr":drop_out}
 		print params_config
 		train_mosi_sentiments(mosi_model,params_config)
 

@@ -35,20 +35,20 @@ class MosiEvaluator():
 				prob_y.append(y_hat)
 
 				if y_hat>=0.5:
-					predicted_y.append(1)
+					predicted_y.append(1.)
 				else:
-					predicted_y.append(0)
+					predicted_y.append(0.)
 
 		acc =  accuracy_score(target_y,predicted_y)
 		f1 = f1_score(target_y,predicted_y)
 		precision  = precision_score(target_y,predicted_y)
 		recall = recall_score(target_y,predicted_y)
 		auc=roc_auc_score(target_y, prob_y)
-
+		
 		# print "pred: ",predicted_y
 		# print "target: ",target_y
 		# print "prob_y:",prob_y
-		print acc,precision,recall,f1,auc
+		# print acc,precision,recall,f1,auc
 
 		return [acc,precision,recall,f1,auc]
 

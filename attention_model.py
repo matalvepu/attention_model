@@ -95,21 +95,21 @@ class LSTM_custom(nn.Module):
         s_dict['weight']=self.drop(s_dict['weight'])
         self.W_ho.load_state_dict(s_dict)
 
-        s_dict=self.W_zi.state_dict()
-        s_dict['weight']=self.drop(s_dict['weight'])
-        self.W_zi.load_state_dict(s_dict)
+        # s_dict=self.W_zi.state_dict()
+        # s_dict['weight']=self.drop(s_dict['weight'])
+        # self.W_zi.load_state_dict(s_dict)
 
-        s_dict=self.W_zf.state_dict()
-        s_dict['weight']=self.drop(s_dict['weight'])
-        self.W_zf.load_state_dict(s_dict)
+        # s_dict=self.W_zf.state_dict()
+        # s_dict['weight']=self.drop(s_dict['weight'])
+        # self.W_zf.load_state_dict(s_dict)
 
-        s_dict=self.W_zg.state_dict()
-        s_dict['weight']=self.drop(s_dict['weight'])
-        self.W_zg.load_state_dict(s_dict)
+        # s_dict=self.W_zg.state_dict()
+        # s_dict['weight']=self.drop(s_dict['weight'])
+        # self.W_zg.load_state_dict(s_dict)
 
-        s_dict=self.W_zo.state_dict()
-        s_dict['weight']=self.drop(s_dict['weight'])
-        self.W_zo.load_state_dict(s_dict)
+        # s_dict=self.W_zo.state_dict()
+        # s_dict['weight']=self.drop(s_dict['weight'])
+        # self.W_zo.load_state_dict(s_dict)
 
 
     def forward(self,x,hidden,z):
@@ -166,17 +166,17 @@ class Memory_attention_network(nn.Module):
         s_dict['weight']=self.drop(s_dict['weight'])
         self.att_w3.load_state_dict(s_dict)
 
-        s_dict=self.C_l.state_dict()
-        s_dict['weight']=self.drop(s_dict['weight'])
-        self.C_l.load_state_dict(s_dict)
+        # s_dict=self.C_l.state_dict()
+        # s_dict['weight']=self.drop(s_dict['weight'])
+        # self.C_l.load_state_dict(s_dict)
 
-        s_dict=self.C_a.state_dict()
-        s_dict['weight']=self.drop(s_dict['weight'])
-        self.C_a.load_state_dict(s_dict)
+        # s_dict=self.C_a.state_dict()
+        # s_dict['weight']=self.drop(s_dict['weight'])
+        # self.C_a.load_state_dict(s_dict)
 
-        s_dict=self.C_f.state_dict()
-        s_dict['weight']=self.drop(s_dict['weight'])
-        self.C_f.load_state_dict(s_dict)
+        # s_dict=self.C_f.state_dict()
+        # s_dict['weight']=self.drop(s_dict['weight'])
+        # self.C_f.load_state_dict(s_dict)
 
     def forward(self,h_i):
 

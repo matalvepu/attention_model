@@ -61,12 +61,12 @@ print("loaded valid")
 # train_x,train_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
 
 # print("loaded train data loader")
-# test_x,test_y=train_x[0:30],train_y[0:30]
+# test_x,test_y=train_x[20:27],train_y[20:27]
 
-# valid_x,valid_y=train_x[30:50],train_y[30:50]
+# valid_x,valid_y=train_x[27:32],train_y[27:32]
 # print("loaded valid")
 
-# train_x,train_y=train_x[50:],train_y[50:]
+# train_x,train_y=train_x[20:35],train_y[20:35]
 # train_data_loader=get_data_loader(train_x,train_y)
 
 
@@ -146,14 +146,14 @@ def train_mosi_sentiments(mosi_model,params):
 
 	evaluator=MosiEvaluator()
 
-	model_name="multi_atten"+str(params)
+	model_name="multi_atten_too"+str(params)
 	model_file=model_version+"models/"+model_name
 
 	opt = optim.Adam(mosi_model.parameters(), lr=params['lr'])
 	criterion = nn.BCEWithLogitsLoss()
 	e_tr_losses = []
 	e_val_losses = []
-	num_epochs = 1500
+	num_epochs = 1000
 
 	best_valid_loss=np.inf
 
@@ -194,7 +194,7 @@ if __name__=='__main__':
 
 	num_atten=3
 	out_dim=1
-	#sparams_list=[(256,40,36,0.0001,0.15)]
+	params_list=[(256,40,30,0.0001,0.2)]
 	for param in params_list:
 		print param 
 		(lan_hid_dim,audio_hid_dim,face_hid_dim,learning_rate,drop_out)=param 

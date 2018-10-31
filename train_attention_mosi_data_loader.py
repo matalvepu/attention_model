@@ -56,6 +56,7 @@ print("loaded train data loader")
 test_x,test_y=load_data('../mosi_data/normalized/COVAREP/test_matrix.pkl')
 print("loaded test")
 valid_x,valid_y=load_data('../mosi_data/normalized/COVAREP/valid_matrix.pkl')
+valid_data_loader=get_data_loader(valid_x,valid_y)
 print("loaded valid")
 
 # train_x,train_y=load_data('../mosi_data/COVAREP/valid_matrix.pkl')
@@ -96,12 +97,24 @@ def validation_loss(mosi_model,criterion):
 	mosi_model.eval()
 	losses = []
 	with torch.no_grad():
-		for i in range(len(valid_x)):
-			x=valid_x[i]
-			y=variablize(torch.FloatTensor([valid_y[i]]))
-			y_hat=mosi_model.forward(x)
-			loss = criterion(y_hat, y)
-			losses.append(loss.cpu().data.numpy())
+		for i, data in enumerate(valid_data_loader):
+			seq ,label = data
+			mini_batch_losses=[]
+			for j,x in enumerate(seq):
+				x=get_unpad_data(x)
+				y=variablize(torch.FloatTensor([[label[j]]]))
+				y_hat=mosi_model.forward(x)
+				loss = criterion(y_hat, y)
+				mini_batch_losses.append(loss)
+
+			mini_batch_loss=reduce(torch.add,mini_batch_losses)/len(mini_batch_losses)
+			losses.append(mini_batch_loss.cpu().data.numpy())
+		# for i in range(len(valid_x)):
+		# 	x=valid_x[i]
+		# 	y=variablize(torch.FloatTensor([valid_y[i]]))
+		# 	y_hat=mosi_model.forward(x)
+		# 	loss = criterion(y_hat, y)
+		# 	losses.append(loss.cpu().data.numpy())
 
 	return np.nanmean(losses)
 
@@ -146,7 +159,7 @@ def train_mosi_sentiments(mosi_model,params):
 
 	evaluator=MosiEvaluator()
 
-	model_name="multi_atten_too"+str(params)
+	model_name="multi_atten"+str(params)
 	model_file=model_version+"models/"+model_name
 
 	opt = optim.Adam(mosi_model.parameters(), lr=params['lr'])
@@ -192,9 +205,9 @@ if __name__=='__main__':
 	params_list=pkl.load(fp)
 	params_list=params_list[s_i:e_i]
 
-	num_atten=3
+	num_atten=4
 	out_dim=1
-	params_list=[(256,40,30,0.0001,0.2)]
+	params_list=[(172,36,20,0.00001,0.1)]
 	for param in params_list:
 		print param 
 		(lan_hid_dim,audio_hid_dim,face_hid_dim,learning_rate,drop_out)=param 
@@ -218,7 +231,7 @@ if __name__=='__main__':
 			except:
 				print "error happended in model",param 
 				pass
-		params_config={"l":lan_hid_dim,"a":audio_hid_dim,"f":face_hid_dim,"lr":learning_rate,"dr":drop_out}
+		params_config={"l":lan_hid_dim,"a":audio_hid_dim,"f":face_hid_dim,"lr":learning_rate,"dr":drop_out,"att_n":num_atten}
 		print params_config
 		train_mosi_sentiments(mosi_model,params_config)
 

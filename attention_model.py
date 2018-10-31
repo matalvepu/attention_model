@@ -95,21 +95,21 @@ class LSTM_custom(nn.Module):
         s_dict['weight']=self.drop(s_dict['weight'])
         self.W_ho.load_state_dict(s_dict)
 
-        # s_dict=self.W_zi.state_dict()
-        # s_dict['weight']=self.drop(s_dict['weight'])
-        # self.W_zi.load_state_dict(s_dict)
+        s_dict=self.W_zi.state_dict()
+        s_dict['weight']=self.drop(s_dict['weight'])
+        self.W_zi.load_state_dict(s_dict)
 
-        # s_dict=self.W_zf.state_dict()
-        # s_dict['weight']=self.drop(s_dict['weight'])
-        # self.W_zf.load_state_dict(s_dict)
+        s_dict=self.W_zf.state_dict()
+        s_dict['weight']=self.drop(s_dict['weight'])
+        self.W_zf.load_state_dict(s_dict)
 
-        # s_dict=self.W_zg.state_dict()
-        # s_dict['weight']=self.drop(s_dict['weight'])
-        # self.W_zg.load_state_dict(s_dict)
+        s_dict=self.W_zg.state_dict()
+        s_dict['weight']=self.drop(s_dict['weight'])
+        self.W_zg.load_state_dict(s_dict)
 
-        # s_dict=self.W_zo.state_dict()
-        # s_dict['weight']=self.drop(s_dict['weight'])
-        # self.W_zo.load_state_dict(s_dict)
+        s_dict=self.W_zo.state_dict()
+        s_dict['weight']=self.drop(s_dict['weight'])
+        self.W_zo.load_state_dict(s_dict)
 
 
     def forward(self,x,hidden,z):
@@ -139,6 +139,7 @@ class Memory_attention_network(nn.Module):
         self.att_w1=nn.Linear(hidden_comb_dim,hidden_comb_dim)
     	self.att_w2=nn.Linear(hidden_comb_dim,hidden_comb_dim)
     	self.att_w3=nn.Linear(hidden_comb_dim,hidden_comb_dim)
+        self.att_w4=nn.Linear(hidden_comb_dim,hidden_comb_dim)
 
         self.l_d=lan_hid_dim
         self.a_d=audio_hid_dim
@@ -166,31 +167,41 @@ class Memory_attention_network(nn.Module):
         s_dict['weight']=self.drop(s_dict['weight'])
         self.att_w3.load_state_dict(s_dict)
 
-        # s_dict=self.C_l.state_dict()
-        # s_dict['weight']=self.drop(s_dict['weight'])
-        # self.C_l.load_state_dict(s_dict)
+        s_dict= self.att_w4.state_dict()
+        s_dict['weight']=self.drop(s_dict['weight'])
+        self.att_w4.load_state_dict(s_dict)
 
-        # s_dict=self.C_a.state_dict()
-        # s_dict['weight']=self.drop(s_dict['weight'])
-        # self.C_a.load_state_dict(s_dict)
+        s_dict=self.C_l.state_dict()
+        s_dict['weight']=self.drop(s_dict['weight'])
+        self.C_l.load_state_dict(s_dict)
 
-        # s_dict=self.C_f.state_dict()
+        s_dict=self.C_a.state_dict()
+        s_dict['weight']=self.drop(s_dict['weight'])
+        self.C_a.load_state_dict(s_dict)
+
+        s_dict=self.C_f.state_dict()
+        s_dict['weight']=self.drop(s_dict['weight'])
+        self.C_f.load_state_dict(s_dict)
+
+        # s_dict=self.W_ac.state_dict()
         # s_dict['weight']=self.drop(s_dict['weight'])
-        # self.C_f.load_state_dict(s_dict)
+        # self.W_ac.load_state_dict(s_dict)
 
     def forward(self,h_i):
 
         wt1=self.s(self.att_w1(h_i))
         wt2=self.s(self.att_w2(h_i))
         wt3=self.s(self.att_w3(h_i))
+        wt4=self.s(self.att_w4(h_i))
 
         h1=torch.mul(h_i,wt1)
         h2=torch.mul(h_i,wt2)
         h3=torch.mul(h_i,wt3)
+        h4=torch.mul(h_i,wt4)
 
-        h_l=torch.cat((h1.view(-1,1)[0:self.l_d],h2.view(-1,1)[0:self.l_d],h3.view(-1,1)[0:self.l_d]),0).view(1,self.num_atten*self.l_d)
-        h_a=torch.cat((h1.view(-1,1)[self.l_d:self.l_d+self.a_d],h2.view(-1,1)[self.l_d:self.l_d+self.a_d],h3.view(-1,1)[self.l_d:self.l_d+self.a_d]),0).view(1,self.num_atten*self.a_d)
-        h_f=torch.cat((h1.view(-1,1)[self.l_d+self.a_d:],h2.view(-1,1)[self.l_d+self.a_d:],h3.view(-1,1)[self.l_d+self.a_d:]),0).view(1,self.num_atten*self.f_d)
+        h_l=torch.cat((h1.view(-1,1)[0:self.l_d],h2.view(-1,1)[0:self.l_d],h3.view(-1,1)[0:self.l_d],h4.view(-1,1)[0:self.l_d]),0).view(1,self.num_atten*self.l_d)
+        h_a=torch.cat((h1.view(-1,1)[self.l_d:self.l_d+self.a_d],h2.view(-1,1)[self.l_d:self.l_d+self.a_d],h3.view(-1,1)[self.l_d:self.l_d+self.a_d],h4.view(-1,1)[self.l_d:self.l_d+self.a_d]),0).view(1,self.num_atten*self.a_d)
+        h_f=torch.cat((h1.view(-1,1)[self.l_d+self.a_d:],h2.view(-1,1)[self.l_d+self.a_d:],h3.view(-1,1)[self.l_d+self.a_d:],h4.view(-1,1)[self.l_d+self.a_d:]),0).view(1,self.num_atten*self.f_d)
 
         s_l = self.C_l(h_l)
         s_a = self.C_a(h_a)
